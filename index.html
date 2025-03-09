@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>USDT Кошелек</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app">
+        <header>
+            <div class="logo">
+                <i class="fas fa-wallet"></i>
+                <h1>USDT Кошелек</h1>
+            </div>
+            <div class="user-info">
+                <img id="user-avatar" src="" alt="Аватар">
+                <span id="user-name">Загрузка...</span>
+            </div>
+        </header>
+
+        <main>
+            <section class="wallet-card">
+                <div class="wallet-balance">
+                    <div class="balance-header">
+                        <span>Баланс</span>
+                        <button id="refresh-button" class="icon-button">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="balance-amount">
+                        <h2 id="usdt-balance">-- USDT</h2>
+                        <p id="rub-balance">-- ₽</p>
+                    </div>
+                    <div class="exchange-rate">
+                        <p>Курс USDT/RUB: <span id="exchange-rate">--</span> ₽</p>
+                        <p class="update-time">Обновлен: <span id="rate-update-time">--</span></p>
+                    </div>
+                </div>
+                <div class="wallet-address">
+                    <div class="address-header">
+                        <span>Адрес кошелька</span>
+                        <button id="copy-address" class="icon-button">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <p id="wallet-address">--</p>
+                    <div id="qr-code" class="qr-code">
+                        <!-- QR-код будет загружен через JS -->
+                    </div>
+                </div>
+            </section>
+
+            <section class="action-buttons">
+                <button id="deposit-btn" class="action-button">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>Пополнить</span>
+                </button>
+                <button id="send-btn" class="action-button">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>Отправить</span>
+                </button>
+                <button id="history-btn" class="action-button">
+                    <i class="fas fa-history"></i>
+                    <span>История</span>
+                </button>
+                <button id="backup-btn" class="action-button">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Резервная фраза</span>
+                </button>
+            </section>
+
+            <section class="transactions-section">
+                <div class="section-header">
+                    <h2>Последние транзакции</h2>
+                    <button id="view-all-transactions" class="text-button">Все</button>
+                </div>
+                <div id="recent-transactions" class="transactions-list">
+                    <!-- Транзакции будут загружены через JS -->
+                    <div class="loading-indicator">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Загрузка транзакций...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <button id="help-btn" class="footer-button">
+                <i class="fas fa-question-circle"></i>
+                <span>Помощь</span>
+            </button>
+            <button id="settings-btn" class="footer-button">
+                <i class="fas fa-cog"></i>
+                <span>Настройки</span>
+            </button>
+        </footer>
+    </div>
+
+    <!-- Модальные окна -->
+    <div id="modal-backdrop" class="modal-backdrop hidden"></div>
+    
+    <!-- Модальное окно отправки -->
+    <div id="send-modal" class="modal hidden">
+        <div class="modal-header">
+            <h2>Отправить USDT</h2>
+            <button class="close-modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="recipient-address">Адрес получателя</label>
+                <input type="text" id="recipient-address" placeholder="Tron-адрес получателя">
+            </div>
+            <div class="form-group">
+                <label for="send-amount">Сумма USDT</label>
+                <input type="number" id="send-amount" placeholder="0.00" step="0.000001" min="0">
+                <p class="balance-info">Доступно: <span id="available-balance">-- USDT</span></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancel-send" class="button secondary">Отмена</button>
+            <button id="confirm-send" class="button primary">Отправить</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно истории транзакций -->
+    <div id="history-modal" class="modal hidden">
+        <div class="modal-header">
+            <h2>История транзакций</h2>
+            <button class="close-modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="transactions-container" class="transactions-list full">
+                <!-- Транзакции будут загружены через JS -->
+                <div class="loading-indicator">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Загрузка транзакций...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно резервной фразы -->
+    <div id="backup-modal" class="modal hidden">
+        <div class="modal-header">
+            <h2>Резервная фраза</h2>
+            <button class="close-modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="warning-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Никогда не передавайте эту фразу третьим лицам. Она обеспечивает полный доступ к вашему кошельку.</p>
+            </div>
+            <div class="mnemonic-container">
+                <div id="mnemonic-phrase" class="mnemonic-phrase">
+                    <!-- Мнемоническая фраза будет загружена через JS -->
+                </div>
+                <button id="copy-mnemonic" class="button secondary">
+                    <i class="fas fa-copy"></i> Копировать
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/app.js"></script>
+</body>
+</html> 
